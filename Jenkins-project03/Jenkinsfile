@@ -1,0 +1,76 @@
+pipeline {
+    // Run on any available Jenkins agent
+    agent any
+
+    // Global environment variables
+    environment {
+        APP_NAME  = 'calculator-app'
+        VERSION   = '1.0.0'
+    }
+
+    stages {
+
+        // STAGE 1: Checkout code from GitHub
+        stage('Checkout') {
+            steps {
+                echo "=== Pulling code from GitHub ==="
+                checkout scm
+                echo "Code checked out successfully!"
+            }
+        }
+
+        // STAGE 2: Verify the environment
+        stage('Build') {
+            steps {
+                echo "=== Building ${APP_NAME} v${VERSION} ==="
+                sh '''
+                    echo "Verifying Python environment..."
+                    python3 --version
+                    echo "Listing project files:"
+                    ls -la
+                    echo "Running the main app:"
+                    python3 calculator.py
+                '''
+            }
+        }
+
+        // STAGE 3: Run automated tests
+        stage('Test') {
+            steps {
+                echo "=== Installing pytest ==="
+                sh 'pip3 install pytest'
+
+                echo "=== Running Unit Tests ==="
+                sh 'python3 -m pytest test_calculator.py -v'
+            }
+
+        }
+
+        // STAGE 4: Simulated deployment
+        stage('Deploy') {
+            steps {
+                echo "=== Deploying ${APP_NAME} ==="
+                sh '''
+                    echo "Deployment simulation..."
+                    echo "App: $APP_NAME"
+                    echo "Version: $VERSION"
+                    echo "Build: $BUILD_NUMBER"
+                    echo "Deployed successfully!"
+                '''
+            }
+        }
+    }
+
+    // POST: Runs after all stages, regardless of result
+    post {
+        success {
+            echo "✅ PIPELINE PASSED — All stages completed!"
+        }
+        failure {
+            echo "❌ PIPELINE FAILED — Check the logs above."
+        }
+        always {
+            echo "Pipeline finished. Build #$BUILD_NUMBER done."
+        }
+    }
+}
