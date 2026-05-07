@@ -24,6 +24,7 @@ pipeline {
             steps {
                 echo "=== Building ${APP_NAME} v${VERSION} ==="
                 sh '''
+                    cd Jenkins-project03
                     echo "Verifying Python environment..."
                     python3 --version
                     echo "Listing project files:"
@@ -41,7 +42,7 @@ pipeline {
                 sh 'pip3 install pytest'
 
                 echo "=== Running Unit Tests ==="
-                sh 'python3 -m pytest test_calculator.py -v'
+                sh 'cd Jenkins-project03 && python3 -m pytest test_calculator.py -v'
             }
 
         }
