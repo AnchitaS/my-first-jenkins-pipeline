@@ -72,3 +72,33 @@ pipeline {
         }
     }
 }
+post {
+    success {
+        echo "✅ Build passed!"
+        emailext(
+            subject: "✅ SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
+            body: """
+                Build Status : SUCCESS
+                Job Name     : ${JOB_NAME}
+                Build Number : ${BUILD_NUMBER}
+                Build URL    : ${BUILD_URL}
+            """,
+            to: 'your-email@gmail.com'
+        )
+    }
+    failure {
+        echo "❌ Build failed!"
+        emailext(
+            subject: "❌ FAILED: ${JOB_NAME} #${BUILD_NUMBER}",
+            body: """
+                Build Status : FAILED
+                Job Name     : ${JOB_NAME}
+                Build Number : ${BUILD_NUMBER}
+                Build URL    : ${BUILD_URL}
+                
+                Please check the console output for details.
+            """,
+            to: 'your-email@gmail.com'
+        )
+    }
+}
