@@ -62,7 +62,7 @@ pipeline {
                     Build Number : ${BUILD_NUMBER}
                     Build URL    : ${BUILD_URL}
                 """,
-                to: 'your-email@gmail.com'
+                to: 'anchitashukla.in@gmail.com'
             )
         }
 
@@ -79,7 +79,7 @@ pipeline {
 
                     Please check console output.
                 """,
-                to: 'your-email@gmail.com'
+                to: 'anchitashukla.in@gmail.com'
             )
         }
 
