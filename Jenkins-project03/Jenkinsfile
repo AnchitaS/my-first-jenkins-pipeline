@@ -1,8 +1,6 @@
 pipeline {
-    // Run on any available Jenkins agent
     agent any
 
-    // Global environment variables
     environment {
         APP_NAME  = 'calculator-app'
         VERSION   = '1.0.0'
@@ -10,7 +8,6 @@ pipeline {
 
     stages {
 
-        // STAGE 1: Checkout code from GitHub
         stage('Checkout') {
             steps {
                 echo "=== Pulling code from GitHub ==="
@@ -19,32 +16,25 @@ pipeline {
             }
         }
 
-        // STAGE 2: Verify the environment
         stage('Build') {
             steps {
                 echo "=== Building ${APP_NAME} v${VERSION} ==="
                 sh '''
                     cd Jenkins-project03
-                    echo "Verifying Python environment..."
                     python3 --version
-                    echo "Listing project files:"
                     ls -la
-                    echo "Running the main app:"
                     python3 calculator.py
                 '''
             }
         }
 
-        // STAGE 3: Run automated tests
         stage('Test') {
             steps {
                 echo "=== Running Unit Tests ==="
                 sh 'cd Jenkins-project03 && python3 -m pytest test_calculator.py -v'
             }
-
         }
 
-        // STAGE 4: Simulated deployment
         stage('Deploy') {
             steps {
                 echo "=== Deploying ${APP_NAME} ==="
@@ -59,46 +49,42 @@ pipeline {
         }
     }
 
-    // POST: Runs after all stages, regardless of result
     post {
+
         success {
             echo "✅ PIPELINE PASSED — All stages completed!"
+
+            emailext(
+                subject: "✅ SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
+                body: """
+                    Build Status : SUCCESS
+                    Job Name     : ${JOB_NAME}
+                    Build Number : ${BUILD_NUMBER}
+                    Build URL    : ${BUILD_URL}
+                """,
+                to: 'your-email@gmail.com'
+            )
         }
+
         failure {
             echo "❌ PIPELINE FAILED — Check the logs above."
+
+            emailext(
+                subject: "❌ FAILED: ${JOB_NAME} #${BUILD_NUMBER}",
+                body: """
+                    Build Status : FAILED
+                    Job Name     : ${JOB_NAME}
+                    Build Number : ${BUILD_NUMBER}
+                    Build URL    : ${BUILD_URL}
+
+                    Please check console output.
+                """,
+                to: 'your-email@gmail.com'
+            )
         }
+
         always {
             echo "Pipeline finished. Build #$BUILD_NUMBER done."
         }
-    }
-}
-post {
-    success {
-        echo "✅ Build passed!"
-        emailext(
-            subject: "✅ SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
-            body: """
-                Build Status : SUCCESS
-                Job Name     : ${JOB_NAME}
-                Build Number : ${BUILD_NUMBER}
-                Build URL    : ${BUILD_URL}
-            """,
-            to: 'your-email@gmail.com'
-        )
-    }
-    failure {
-        echo "❌ Build failed!"
-        emailext(
-            subject: "❌ FAILED: ${JOB_NAME} #${BUILD_NUMBER}",
-            body: """
-                Build Status : FAILED
-                Job Name     : ${JOB_NAME}
-                Build Number : ${BUILD_NUMBER}
-                Build URL    : ${BUILD_URL}
-                
-                Please check the console output for details.
-            """,
-            to: 'your-email@gmail.com'
-        )
     }
 }
