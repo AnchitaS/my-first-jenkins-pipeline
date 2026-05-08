@@ -38,9 +38,6 @@ pipeline {
         // STAGE 3: Run automated tests
         stage('Test') {
             steps {
-                echo "=== Installing pytest ==="
-                sh 'pip3 install pytest'
-
                 echo "=== Running Unit Tests ==="
                 sh 'cd Jenkins-project03 && python3 -m pytest test_calculator.py -v'
             }
