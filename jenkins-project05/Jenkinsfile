@@ -1,0 +1,80 @@
+parameters {
+        // Dropdown choice
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'staging', 'production'],
+            description: 'Which environment to deploy to?'
+        )
+        // Free text input
+        string(
+            name: 'VERSION',
+            defaultValue: '1.0.0',
+            description: 'App version to deploy'
+        )
+        // Checkbox toggle
+        booleanParam(
+            name: 'RUN_TESTS',
+            defaultValue: true,
+            description: 'Run tests before deploying?'
+        )
+    }
+
+    stages {
+        stage('Show Parameters') {
+            steps {
+                echo "Environment : ${params.ENVIRONMENT}"
+                echo "Version     : ${params.VERSION}"
+                echo "Run Tests   : ${params.RUN_TESTS}"
+            }
+        }
+
+        // Only runs if RUN_TESTS checkbox is ticked
+        stage('Test') {
+            when {
+                expression { return params.RUN_TESTS == true }
+            }
+            steps {
+                echo "Running tests for v${params.VERSION}..."
+                sh 'echo "All tests passed!"'
+            }
+        }
+
+        // Only runs if environment is NOT production
+        stage('Deploy') {
+            when {
+                expression {
+                    return params.ENVIRONMENT != 'production'
+                }
+            }
+            steps {
+                echo "Deploying v${params.VERSION} to ${params.ENVIRONMENT}..."
+                sh """
+                    echo "=== DEPLOYMENT ==="
+                    echo "Target : ${params.ENVIRONMENT}"
+                    echo "Version: ${params.VERSION}"
+                    echo "Deploy complete!"
+                """
+            }
+        }
+
+        // Only runs if environment IS production (extra safety)
+        stage('Production Approval') {
+            when {
+                expression {
+                    return params.ENVIRONMENT == 'production'
+                }
+            }
+            steps {
+                echo "⚠️ Production deploy requested!"
+                echo "Simulating approval gate..."
+                sh 'echo "Production deployment of v${params.VERSION} approved!"'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline done for ${params.ENVIRONMENT} env."
+        }
+    }
+}
