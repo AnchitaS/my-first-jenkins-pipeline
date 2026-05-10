@@ -1,17 +1,17 @@
-parameters {
-        // Dropdown choice
+pipeline {
+    agent any
+
+    parameters {
         choice(
             name: 'ENVIRONMENT',
             choices: ['dev', 'staging', 'production'],
             description: 'Which environment to deploy to?'
         )
-        // Free text input
         string(
             name: 'VERSION',
             defaultValue: '1.0.0',
             description: 'App version to deploy'
         )
-        // Checkbox toggle
         booleanParam(
             name: 'RUN_TESTS',
             defaultValue: true,
@@ -20,6 +20,7 @@ parameters {
     }
 
     stages {
+
         stage('Show Parameters') {
             steps {
                 echo "Environment : ${params.ENVIRONMENT}"
@@ -28,7 +29,6 @@ parameters {
             }
         }
 
-        // Only runs if RUN_TESTS checkbox is ticked
         stage('Test') {
             when {
                 expression { return params.RUN_TESTS == true }
@@ -39,12 +39,9 @@ parameters {
             }
         }
 
-        // Only runs if environment is NOT production
         stage('Deploy') {
             when {
-                expression {
-                    return params.ENVIRONMENT != 'production'
-                }
+                expression { return params.ENVIRONMENT != 'production' }
             }
             steps {
                 echo "Deploying v${params.VERSION} to ${params.ENVIRONMENT}..."
@@ -57,22 +54,49 @@ parameters {
             }
         }
 
-        // Only runs if environment IS production (extra safety)
         stage('Production Approval') {
             when {
-                expression {
-                    return params.ENVIRONMENT == 'production'
-                }
+                expression { return params.ENVIRONMENT == 'production' }
             }
             steps {
                 echo "⚠️ Production deploy requested!"
                 echo "Simulating approval gate..."
-                sh 'echo "Production deployment of v${params.VERSION} approved!"'
+                sh 'echo "Production deployment approved!"'
             }
         }
+
     }
+
     post {
+        success {
+            echo "✅ PIPELINE PASSED!"
+            emailext(
+                subject: "✅ SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
+                body: """
+                    Build Status  : SUCCESS
+                    Environment   : ${params.ENVIRONMENT}
+                    Version       : ${params.VERSION}
+                    Build URL     : ${BUILD_URL}
+                """,
+                to: 'anchitashukla.in@gmail.com'
+            )
+        }
+        failure {
+            echo "❌ PIPELINE FAILED!"
+            emailext(
+                subject: "❌ FAILED: ${JOB_NAME} #${BUILD_NUMBER}",
+                body: """
+                    Build Status  : FAILED
+                    Environment   : ${params.ENVIRONMENT}
+                    Version       : ${params.VERSION}
+                    Build URL     : ${BUILD_URL}
+                """,
+                to: 'anchitashukla.in@gmail.com'
+            )
+        }
         always {
-            echo "Pipeline done for ${params.ENVIRONMENT} env."
+            echo "Pipeline finished. Build #${BUILD_NUMBER} done."
         }
     }
+
+}
