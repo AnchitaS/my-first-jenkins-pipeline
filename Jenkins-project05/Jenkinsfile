@@ -71,7 +71,6 @@ parameters {
             }
         }
     }
-
     post {
         always {
             echo "Pipeline done for ${params.ENVIRONMENT} env."
