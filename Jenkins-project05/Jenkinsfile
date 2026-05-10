@@ -76,4 +76,3 @@ parameters {
             echo "Pipeline done for ${params.ENVIRONMENT} env."
         }
     }
-}
